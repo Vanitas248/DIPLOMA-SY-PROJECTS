@@ -1,118 +1,97 @@
-----------------------------------------------------------------------------TIC TAC TOE ---------------------------------------------------------------------------
+----------------------------------------------------------------------------TIC TAC TOE----------------------------------------------------------------------------------------
+#include <conio.h> 
 #include <graphics.h>
-#include <conio.h>
+#include <stdlib.h>
 
-#define WIDTH 20
-#define HEIGHT 20
-#define GRID_SIZE 20
-#define SNAKE_LENGTH 5
+void drawBoard();
+void drawMove(int row, int col, char player);
+char checkWin(char board[3][3]);
+void playerMove(char board[3][3], int player);
 
-typedef struct {
-    int x, y;
-} Point;
+void drawBoard() {
+    int offsetX = 300;
+    setcolor(WHITE);
+    line(200 + offsetX, 100, 200 + offsetX, 400);
+    line(300 + offsetX, 100, 300 + offsetX, 400);
+    line(100 + offsetX, 200, 400 + offsetX, 200);
+    line(100 + offsetX, 300, 400 + offsetX, 300);
+}
 
-void drawGrid() {
-    for (int i = 0; i <= WIDTH; i++) {
-        line(i * GRID_SIZE, 0, i * GRID_SIZE, HEIGHT * GRID_SIZE);
-    }
-    for (int i = 0; i <= HEIGHT; i++) {
-        line(0, i * GRID_SIZE, WIDTH * GRID_SIZE, i * GRID_SIZE);
+void drawMove(int row, int col, char player) {
+    int offsetX = 300;
+    int x = 150 + col * 100 + offsetX;
+    int y = 150 + row * 100;
+
+    setcolor(player == 'X' ? RED : GREEN);
+    if (player == 'X') {
+        line(x - 30, y - 30, x + 30, y + 30);
+        line(x - 30, y + 30, x + 30, y - 30);
+    } else {
+        circle(x, y, 30);
     }
 }
 
-void drawSnake(Point snake[], int length) {
-    for (int i = 0; i < length; i++) {
-        setfillstyle(SOLID_FILL, i % 8);
-        bar(snake[i].x * GRID_SIZE, snake[i].y * GRID_SIZE, (snake[i].x + 1) * GRID_SIZE, (snake[i].y + 1) * GRID_SIZE);
+char checkWin(char board[3][3]) {
+    int i;
+    i = 0;
+    if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ')
+        return board[i][0];
+    i = 1;
+    if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ')
+        return board[i][0];
+    i = 2;
+    if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ')
+        return board[i][0];
+    i = 0;
+    if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ')
+        return board[0][i];
+    i = 1;
+    if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ')
+        return board[0][i];
+    i = 2;
+    if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ')
+        return board[0][i];
+    if (board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' ')
+        return board[0][0];
+    if (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' ')
+        return board[0][2];
+    for (i = 0; i < 9; i++) {
+        if (board[i / 3][i % 3] == ' ')
+            return 0;
     }
+    return 'D';
 }
 
-void drawFood(Point food) {
-    setfillstyle(SOLID_FILL, 9);
-    bar(food.x * GRID_SIZE, food.y * GRID_SIZE, (food.x + 1) * GRID_SIZE, (food.y + 1) * GRID_SIZE);
+void playerMove(char board[3][3], int player) {
+    int row, col;
+    do {
+        printf("Player %d, enter row and column (1-3): ", player);
+        scanf("%d%d", &row, &col);
+        row--; col--;
+    } while (row < 0 || row > 2 || col < 0 || col > 2 || board[row][col] != ' ');
+    board[row][col] = (player == 1) ? 'X' : 'O';
+    drawMove(row, col, board[row][col]);
 }
 
-void main() {
+int main() {
     int gd = DETECT, gm;
-    initgraph(&gd, &gm, "");
+    char board[3][3] = {{' ', ' ', ' '}, {' ', ' ', ' '}, {' ', ' ', ' '}};
+    int player = 1;
+    char result = 0;
 
-    Point snake[SNAKE_LENGTH];
-    Point food;
-    int length = SNAKE_LENGTH;
-    int direction = 0; // 0: up, 1: down, 2: left, 3: right
+    initgraph(&gd, &gm, "C:\\TURBOC3\\BGI");
+    drawBoard();
 
-    for (int i = 0; i < SNAKE_LENGTH; i++) {
-        snake[i].x = WIDTH / 2 - i;
-        snake[i].y = HEIGHT / 2;
-    }
-    food.x = 5;
-    food.y = 5;
-
-    drawGrid();
-    drawSnake(snake, length);
-    drawFood(food);
-
-    while (1) {
-        if (kbhit()) {
-            char c = getch();
-            switch (c) {
-                case 'w':
-                    direction = 0;
-                    break;
-                case 's':
-                    direction = 1;
-                    break;
-                case 'a':
-                    direction = 2;
-                    break;
-                case 'd':
-                    direction = 3;
-                    break;
-            }
-        }
-
-        for (int i = length - 1; i > 0; i--) {
-            snake[i].x = snake[i - 1].x;
-            snake[i].y = snake[i - 1].y;
-        }
-        switch (direction) {
-            case 0:
-                snake[0].y--;
-                break;
-            case 1:
-                snake[0].y++;
-                break;
-            case 2:
-                snake[0].x--;
-                break;
-            case 3:
-                snake[0].x++;
-                break;
-        }
-
-        if (snake[0].x < 0 || snake[0].x >= WIDTH || snake[0].y < 0 || snake[0].y >= HEIGHT) {
-            break;
-        }
-
-        for (int i = 1; i < length; i++) {
-            if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-                break;
-            }
-        }
-
-        if (snake[0].x == food.x && snake[0].y == food.y) {
-            length++;
-            food.x = 10;
-            food.y = 10;
-        }
-
-        cleardevice();
-        drawGrid();
-        drawSnake(snake, length);
-        drawFood(food);
-
-        delay(100);
+    while (!result) {
+        playerMove(board, player);
+        result = checkWin(board);
+        player = 3 - player;
     }
 
+    setcolor(WHITE);
+    outtextxy(450, 50, result == 'D' ? "It's a Draw!" : result == 'X' ? "Player 1 (X) Wins!" : "Player 2 (O) Wins!");
+
+    getch();
     closegraph();
+    return 0;
 }
